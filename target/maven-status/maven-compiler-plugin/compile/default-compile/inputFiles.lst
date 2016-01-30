@@ -1,5 +1,6 @@
 /Users/CodjoQuenum/IdeaProjects/AppEngineDemo/src/main/java/fr/ecp/sio/appenginedemo/model/Message.java
 /Users/CodjoQuenum/IdeaProjects/AppEngineDemo/src/main/java/fr/ecp/sio/appenginedemo/model/Error.java
+/Users/CodjoQuenum/IdeaProjects/AppEngineDemo/src/main/java/fr/ecp/sio/appenginedemo/model/Relationship.java
 /Users/CodjoQuenum/IdeaProjects/AppEngineDemo/src/main/java/fr/ecp/sio/appenginedemo/model/User.java
 /Users/CodjoQuenum/IdeaProjects/AppEngineDemo/src/main/java/fr/ecp/sio/appenginedemo/utils/GCSUtils.java
 /Users/CodjoQuenum/IdeaProjects/AppEngineDemo/src/main/java/fr/ecp/sio/appenginedemo/gson/GsonFactory.java
@@ -9,6 +10,7 @@
 /Users/CodjoQuenum/IdeaProjects/AppEngineDemo/src/main/java/fr/ecp/sio/appenginedemo/api/JsonServlet.java
 /Users/CodjoQuenum/IdeaProjects/AppEngineDemo/src/main/java/fr/ecp/sio/appenginedemo/api/ApiException.java
 /Users/CodjoQuenum/IdeaProjects/AppEngineDemo/src/main/java/fr/ecp/sio/appenginedemo/api/UserServlet.java
+/Users/CodjoQuenum/IdeaProjects/AppEngineDemo/src/main/java/fr/ecp/sio/appenginedemo/model/Deref.java
 /Users/CodjoQuenum/IdeaProjects/AppEngineDemo/src/main/java/fr/ecp/sio/appenginedemo/utils/ValidationUtils.java
 /Users/CodjoQuenum/IdeaProjects/AppEngineDemo/src/main/java/fr/ecp/sio/appenginedemo/api/MessageServlet.java
 /Users/CodjoQuenum/IdeaProjects/AppEngineDemo/src/main/java/fr/ecp/sio/appenginedemo/api/UsersServlet.java

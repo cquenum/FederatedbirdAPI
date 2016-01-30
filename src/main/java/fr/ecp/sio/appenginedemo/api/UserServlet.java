@@ -72,6 +72,7 @@ public class UserServlet extends JsonServlet {
         // TODO: Apply some changes on the user (after checking for the connected user)
         // TODO: Handle special parameters like "followed=true" to create or destroy relationships
 
+        String headerParam;
         boolean followed;
 
         // Get me
@@ -94,7 +95,7 @@ public class UserServlet extends JsonServlet {
         // Check whether or not the user is trying to edit an account
         // We ignore followed parameter
         // we assume he cannot edit somebody else account.
-        if (me == user) {
+        if (me.id == user.id) {
             // He is trying to edit his own account
             // get the request body
             // CAUTION : user can try to modify his id
@@ -112,10 +113,10 @@ public class UserServlet extends JsonServlet {
                 throw new ApiException(400, "invalidEmail", "Invalid email");
             }
 
-            if (UsersRepository.getUserByLogin(user.login) != me) {
+            if (!UsersRepository.getUserByLogin(user.login).login.equalsIgnoreCase(me.login)) {
                 throw new ApiException(400, "duplicateLogin", "Duplicate login");
             }
-            if (UsersRepository.getUserByEmail(user.email) != me) {
+            if (!UsersRepository.getUserByEmail(user.email).email.equalsIgnoreCase(me.email)) {
                 throw new ApiException(400, "duplicateEmail", "Duplicate email");
             }
 
@@ -158,14 +159,17 @@ public class UserServlet extends JsonServlet {
             return getUser(me.id);
         }
 
+        headerParam = req.getHeader("followed");
+
         // Check followed parameter
-        if (req.getHeader("followed") != null) {
+        if (headerParam != null) {
             try {
-                followed = Boolean.parseBoolean(req.getHeader("followed"));
+                followed = Boolean.parseBoolean(headerParam);
                 // Set current user to follow/unfollow the user with given id
                 // At this point me is always different from user
                 // it means that user cannot follow/unfollow himself
                 setUserFollowed(me.id,user.id,followed);
+                return getUser(me.id);
             }
             catch (Exception e){
                 // followed value cannot be parsed to boolean

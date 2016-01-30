@@ -8,9 +8,8 @@
 # sudo pip install requests
 
 import json
-import requests
 import random
-
+import requests
 
 # get messages from http://beta.json-generator.com/api/json/get/EJs_KTlUx
 # and parse to json
@@ -35,7 +34,7 @@ messages = r.json()
 # set server url value
 url= 'http://beta.json-generator.com/api/json/get/4JKuvC1Ug'
 r = requests.get(url)
-users = []
+# users = []
 users = r.json()
 
 # send post request for each message
@@ -51,10 +50,14 @@ for message in messages:
         token = str(r.text).encode("utf-8").replace("\"","")
         authorization = "Bearer " + token
         headers = { 'Content-Type' : 'application/json',
-            'Authorization': authorization }
+                    'Authorization': authorization,
+                    'followed': 'true'}
         url = 'http://localhost:8080/messages'
         r = requests.post(url, data=json.dumps(message),headers=headers)
         print (r.text)
         print (r.status_code)
-
+        id = random.randint(1, 100)
+        r = requests.post('http://localhost:8080/users/' + str(id), data=json.dumps(message), headers=headers)
+        print (r.text)
+        print (r.status_code)
 # TODO: Test cases
