@@ -29,6 +29,51 @@ public class JsonServlet extends HttpServlet {
     // The Pattern is built from the regex string using the static method compile(), then it is ready to be used.
     protected static final Pattern AUTHORIZATION_PATTERN = Pattern.compile("Bearer (.+)");
 
+    // This method can be used by our sub-servlets to get the User sending the request
+    // We parse the response header, check it against our repository and return it
+    protected static User getAuthenticatedUser(HttpServletRequest req) throws ApiException {
+        // Client applications are supposed to send their token in a "Authorization" header
+        String auth = req.getHeader("Authorization");
+        if (auth != null) {
+            // We use our static pattern to both validate the pattern and get the token
+            // We create a Matcher that can be used (single use) to validate an input string
+            Matcher m = AUTHORIZATION_PATTERN.matcher(auth);
+            if (!m.matches()) {
+                // The header is not well formatted (should be "Bearer xxxxxxxx")
+                throw new ApiException(401, "invalidAuthorization", "Invalid authorization header format");
+            }
+            try {
+                // Our tokens actually are just and encrypted id, lets decrypt it
+                // m.group(1) is the first value that was captured by the regex pattern (the token itself)
+                long id = TokenUtils.parseToken(m.group(1));
+                // We have the id, lets simply get the user from our repository
+                return UsersRepository.getUser(id);
+            } catch (SignatureException e) {
+                // The decryption of the token failed!
+                throw new ApiException(401, "invalidAuthorization", "Invalid token");
+            }
+        } else {
+            return null;
+        }
+    }
+
+    // This method can be used by our sub-servlets to get the request JSON body as a JsonObject (generic parsing)
+    protected static JsonObject getJsonRequestBody(HttpServletRequest req) throws IOException {
+        // Here again we simply rely on the Gson library, giving it a Reader opened on the request InputStream
+        // The request is assumed to be a JSON object { ... } with this method
+        return new JsonParser()
+                .parse(req.getReader())
+                .getAsJsonObject();
+    }
+
+    // This method can be used by our sub-servlets to get the request JSON body as an object
+    // It will parse the request and convert it to an instance of the specified type
+    // This is a generic method: the return type T depends on ("is bound to") the second parameter
+    protected static <T> T getJsonRequestBody(HttpServletRequest req, Class<T> type) throws IOException {
+        // We used the Gson library for parsing
+        return GsonFactory.getGson().fromJson(req.getReader(), type);
+    }
+
     // All servlets behave the same: they receive request (req) and are supposed to write to the response (resp).
     // Note that the method does not return the response, instead it can write to (like a stream).
     // We override this default behaviour to handle the writing of the response as JSON.
@@ -89,6 +134,21 @@ public class JsonServlet extends HttpServlet {
         return null;
     }
 
+    @Override
+    protected final void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        try {
+            Object response = doPut(req);
+            sendResponse(response, resp);
+        } catch (ApiException e) {
+            resp.setStatus(e.getError().status);
+            sendResponse(e.getError(), resp);
+        }
+    }
+
+    protected Object doPut(HttpServletRequest req) throws ServletException, IOException, ApiException {
+        return null;
+    }
+
     // Private common place for writing a response Object as JSON into the response stream
     private void sendResponse(Object response, HttpServletResponse resp) throws IOException {
         // Before writing the actual response, we can send response headers (key-value pairs describing the response)
@@ -97,51 +157,6 @@ public class JsonServlet extends HttpServlet {
         // After the headers are written, we can go for the response body
         // We rely on the Gson library, giving it the object and a Writer opened on the response OutputStream
         GsonFactory.getGson().toJson(response, resp.getWriter());
-    }
-
-    // This method can be used by our sub-servlets to get the User sending the request
-    // We parse the response header, check it against our repository and return it
-    protected static User getAuthenticatedUser(HttpServletRequest req) throws ApiException {
-        // Client applications are supposed to send their token in a "Authorization" header
-        String auth = req.getHeader("Authorization");
-        if (auth != null) {
-            // We use our static pattern to both validate the pattern and get the token
-            // We create a Matcher that can be used (single use) to validate an input string
-            Matcher m = AUTHORIZATION_PATTERN.matcher(auth);
-            if (!m.matches()) {
-                // The header is not well formatted (should be "Bearer xxxxxxxx")
-                throw new ApiException(401, "invalidAuthorization", "Invalid authorization header format");
-            }
-            try {
-                // Our tokens actually are just and encrypted id, lets decrypt it
-                // m.group(1) is the first value that was captured by the regex pattern (the token itself)
-                long id = TokenUtils.parseToken(m.group(1));
-                // We have the id, lets simply get the user from our repository
-                return UsersRepository.getUser(id);
-            } catch (SignatureException e) {
-                // The decryption of the token failed!
-                throw new ApiException(401, "invalidAuthorization", "Invalid token");
-            }
-        } else {
-            return null;
-        }
-    }
-
-    // This method can be used by our sub-servlets to get the request JSON body as a JsonObject (generic parsing)
-    protected static JsonObject getJsonRequestBody(HttpServletRequest req) throws IOException {
-        // Here again we simply rely on the Gson library, giving it a Reader opened on the request InputStream
-        // The request is assumed to be a JSON object { ... } with this method
-        return new JsonParser()
-                .parse(req.getReader())
-                .getAsJsonObject();
-    }
-
-    // This method can be used by our sub-servlets to get the request JSON body as an object
-    // It will parse the request and convert it to an instance of the specified type
-    // This is a generic method: the return type T depends on ("is bound to") the second parameter
-    protected static <T> T getJsonRequestBody(HttpServletRequest req, Class<T> type) throws IOException {
-        // We used the Gson library for parsing
-        return GsonFactory.getGson().fromJson(req.getReader(), type);
     }
 
 }

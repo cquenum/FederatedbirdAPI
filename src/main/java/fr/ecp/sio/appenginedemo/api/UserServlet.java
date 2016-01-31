@@ -95,7 +95,7 @@ public class UserServlet extends JsonServlet {
         // Check whether or not the user is trying to edit an account
         // We ignore followed parameter
         // we assume he cannot edit somebody else account.
-        if (me.id == user.id) {
+        if (UsersRepository.equals(me, user)) {
             // He is trying to edit his own account
             // get the request body
             // CAUTION : user can try to modify his id
@@ -202,7 +202,7 @@ public class UserServlet extends JsonServlet {
         User user = getUserFromReqInfoPath(req);
 
         // Delete the user
-        if (me == user){
+        if (UsersRepository.equals(me, user)) {
             // Delete all messages of the user
             // Iterate through messages to get his messages
             Iterator <Message> messageIterator = MessagesRepository.getMessages().listIterator();
@@ -244,6 +244,57 @@ public class UserServlet extends JsonServlet {
             throw new ApiException(401,"NotAllowed","Not permitted");
 
         return null;
+    }
+
+    @Override
+    protected User doPut(HttpServletRequest req) throws ServletException, IOException, ApiException {
+
+        if (req.getPathInfo().replace("/", "").isEmpty())
+            throw new ApiException(400, "BadRequest", "You must specify your id or me");
+
+        // Get the current user
+        User me = getAuthenticatedUser(req);
+
+        // Check whether or not the user is authenticated
+        if (me == null)
+            throw new ApiException(401, "MethodNotAllowed", "Missing authorization token");
+
+        // Get the user whose avatar is going to be changed
+        User user = getUserFromReqInfoPath(req);
+        String contentType = req.getHeader("Content-Type");
+
+        if (contentType.equalsIgnoreCase("image/jpeg")) {
+
+            try {
+
+                byte[] picture = IOUtils.toByteArray(req.getInputStream());
+
+                GcsFilename fileName = new GcsFilename(BUCKET_NAME, user.login);
+                GcsFileOptions options = new GcsFileOptions.Builder()
+                        .mimeType("image/jpeg")
+                        .acl("public-read")
+                        .addUserMetadata("user", user.login)
+                        .build();
+
+                // Save picture to GCS
+                writeToFile(fileName, options, picture);
+
+                // Get picture URL
+                ServingUrlOptions urlOptions = ServingUrlOptions
+                        .Builder.withGoogleStorageFileName("/gs/" + BUCKET_NAME + "/" + user.login);
+                ImagesService imagesService = ImagesServiceFactory.getImagesService();
+
+                // Set coverPicture to picture URL
+                user.coverPicture = imagesService.getServingUrl(urlOptions);
+                saveUser(user);
+            } catch (Exception e) {
+                throw new ApiException(500, "InternalServerError", "Internal Server Error");
+            }
+        } else {
+            throw new ApiException(401, "MethodNotAllowed", "Only image/jpeg Content-Type is allowed with this method");
+        }
+
+        return getUser(user.id);
     }
 
 

@@ -161,6 +161,10 @@ public class UsersRepository {
         ObjectifyService.ofy().save().entity(r_2).now();
     }
 
+    public static boolean equals(User a, User b) {
+        return Key.create(User.class, a.id).equivalent(Key.create(User.class, b.id));
+    }
+
     /**
      * A list of users, with optionally a cursor to get the next items
      */
