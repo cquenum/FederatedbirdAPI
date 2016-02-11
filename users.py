@@ -21,7 +21,7 @@ users = r.json()
 # uncomment the code below
 # users = []
 # with open("users.json") as json_file:
-#    users = json.load(json_file)
+#    users = json.loads(json_file)
 #####
 
 # send post request for each user to add

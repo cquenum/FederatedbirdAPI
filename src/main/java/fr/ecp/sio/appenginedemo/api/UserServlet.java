@@ -89,7 +89,7 @@ public class UserServlet extends JsonServlet {
 
 
         // Get the user with id in requestInfoPath
-        User user= getUserFromReqInfoPath(req);
+        User user = getUserFromReqInfoPath(req);
 
         // We have the current user and the user he want to follow/unfollow or just edit
         // Check whether or not the user is trying to edit an account

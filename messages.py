@@ -26,7 +26,7 @@ messages = r.json()
 # uncomment the code below
 # messages = []
 # with open("messages.json") as json_file:
-#    messages = json.load(json_file)
+#    messages = json.loads(json_file)
 #####
 
 # User token is required to post a message
@@ -34,7 +34,7 @@ messages = r.json()
 # set server url value
 url= 'http://beta.json-generator.com/api/json/get/4JKuvC1Ug'
 r = requests.get(url)
-# users = []
+users = []
 users = r.json()
 
 # send post request for each message

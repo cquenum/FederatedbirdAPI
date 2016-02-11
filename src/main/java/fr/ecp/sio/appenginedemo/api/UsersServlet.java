@@ -66,13 +66,12 @@ public class UsersServlet extends JsonServlet {
 
         // paramValue is set to some value. We retrieve the user id
         if (paramValue.equalsIgnoreCase("me")){
-            try {
-                id = getAuthenticatedUser(req).id;
-            }
-            catch (NullPointerException e){
+            User me = getAuthenticatedUser(req);
+            if (me == null) {
                 // The id is set to "me" but user Authorization token is missing
                 throw new ApiException(401,"NotAllowed","Missing authorization token");
             }
+            id = me.id;
         } else {
             try {
                 // Trying to parse a string to long can produce NumberFormatException
